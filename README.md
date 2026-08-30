@@ -19,6 +19,24 @@ Pequenos comerciantes e artesãos perdem visibilidade e margem de lucro nas gran
 *   **Transparência de Checkout:** Exibição clara da distribuição do dinheiro (fatia do produtor, frete e manutenção do app).
 *   **Gestão de Pedidos:** Carrinho de compras simples e acompanhamento do status do pedido.
 
+## Como Rodar (Docker)
+O app é Flutter; a forma mais simples de visualizá-lo sem instalar o SDK é via Docker, que compila a build web e a serve com nginx.
+
+```bash
+# build da imagem
+docker build -t ali-flutter .
+
+# sobe o container (porta 8090 do host -> 80 do container)
+docker run -d --name ali-flutter-preview -p 8090:80 ali-flutter
+```
+
+Depois acesse **http://localhost:8090** no navegador.
+
+Para parar e remover o container:
+```bash
+docker rm -f ali-flutter-preview
+```
+
 ## Identidade Visual:
 Identidade visual feita no figma.
 
