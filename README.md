@@ -47,8 +47,9 @@ Identidade visual feita no figma.
 ##  Integrantes do Grupo
 *   **Miguel Vanucci Delgado RM: 563491** - [Identidade Visual]
 *   **Henry dos Santos Lima RM: 565309** - [Documentação inicial]
-*   **Samuel da Silva Nunes RM: 564435 ** - [Pitch]
+*   **Samuel da Silva Nunes RM: 564435** - [Pitch]
 *   **João Vitor Lima RM: 566541** - [Desenvolvimento de marca]
+*   **Lucas Werpp Franco RM: 556044** - [Desenvolvedor]
 
 
 ---
