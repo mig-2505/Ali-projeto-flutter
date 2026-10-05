@@ -1,0 +1,19 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8090:80"
+    depends_on:
+      - api
+
+  api:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      DB_PATH: /data/ali.db
+    volumes:
+      - ali-data:/data
+
+volumes:
+  ali-data:

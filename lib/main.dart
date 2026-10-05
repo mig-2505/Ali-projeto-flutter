@@ -1,7 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 
 void main() => runApp(const AliApp());
+
+// Endereço da API (backend/). Emulador Android: --dart-define=API_URL=http://10.0.2.2:5000
+const apiUrl = String.fromEnvironment('API_URL', defaultValue: 'http://localhost:5000');
+
+Future<List<dynamic>> apiGet(String path) async {
+  final res = await http.get(Uri.parse('$apiUrl$path'));
+  if (res.statusCode != 200) throw Exception('GET $path falhou (${res.statusCode})');
+  return jsonDecode(utf8.decode(res.bodyBytes)) as List;
+}
 
 // ─── Tokens de design (paleta original de src/index.css) ──────────────────
 
@@ -48,34 +60,21 @@ Widget _iconBox({
 class AliCategory {
   final String id, label, emoji;
   const AliCategory(this.id, this.label, this.emoji);
+  AliCategory.fromJson(Map<String, dynamic> j) : this(j['id'], j['label'], j['emoji']);
 }
 
-const categories = [
-  AliCategory('all', 'Todos', '✦'),
-  AliCategory('hortalicas', 'Hortaliças', '🥬'),
-  AliCategory('frutas', 'Frutas', '🍊'),
-  AliCategory('laticinios', 'Laticínios', '🧀'),
-  AliCategory('paes', 'Pães', '🍞'),
-  AliCategory('mel', 'Mel & Geleias', '🍯'),
-];
+// Pseudo-categoria do filtro; as demais vêm da API.
+const allCategory = AliCategory('all', 'Todos', '✦');
 
 class Producer {
   final int id;
   final String name, specialty, avatar;
   final double rating;
   const Producer(this.id, this.name, this.specialty, this.avatar, this.rating);
+  Producer.fromJson(Map<String, dynamic> j)
+      : this(j['id'], j['name'], j['specialty'], j['avatar'], (j['rating'] as num).toDouble());
 }
 
-const producers = [
-  Producer(1, 'Márcia Oliveira', 'Hortas Orgânicas',
-      'https://images.unsplash.com/photo-1542838132-92c53300491e?w=80&h=80&fit=crop&auto=format', 4.9),
-  Producer(2, 'João Ferreira', 'Pães Artesanais',
-      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=80&h=80&fit=crop&auto=format', 5.0),
-  Producer(3, 'Família Tanaka', 'Frutas e Legumes',
-      'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=80&h=80&fit=crop&auto=format', 4.8),
-  Producer(4, 'Luísa Mendes', 'Laticínios & Ovos',
-      'https://images.unsplash.com/photo-1549060279-7e168fcee0c2?w=80&h=80&fit=crop&auto=format', 4.7),
-];
 
 enum TagColor { primary, accent }
 
@@ -95,18 +94,20 @@ class AliProduct {
     required this.tag,
     required this.tagColor,
   });
+  AliProduct.fromJson(Map<String, dynamic> j)
+      : this(
+          id: j['id'],
+          name: j['name'],
+          producer: j['producer'],
+          price: (j['price'] as num).toDouble(),
+          unit: j['unit'],
+          category: j['category'],
+          image: j['image'],
+          tag: j['tag'],
+          tagColor: TagColor.values.byName(j['tag_color']),
+        );
 }
 
-const products = [
-  AliProduct(id: 1, name: 'Alface Crespa Orgânica', producer: 'Márcia Oliveira', price: 4.5, unit: 'pé', category: 'hortalicas', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop&auto=format', tag: 'Colhida hoje', tagColor: TagColor.primary),
-  AliProduct(id: 2, name: 'Pão de Fermentação Natural', producer: 'João Ferreira', price: 28.0, unit: 'unid', category: 'paes', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop&auto=format', tag: 'Mais vendido', tagColor: TagColor.accent),
-  AliProduct(id: 3, name: 'Tangerina Ponkan', producer: 'Família Tanaka', price: 9.9, unit: 'kg', category: 'frutas', image: 'https://images.unsplash.com/photo-1557800636-894a64c1696f?w=400&h=300&fit=crop&auto=format', tag: 'Temporada', tagColor: TagColor.primary),
-  AliProduct(id: 4, name: 'Queijo Minas Frescal', producer: 'Luísa Mendes', price: 18.5, unit: '500g', category: 'laticinios', image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&h=300&fit=crop&auto=format', tag: 'Artesanal', tagColor: TagColor.accent),
-  AliProduct(id: 5, name: 'Mel de Eucalipto Puro', producer: 'Márcia Oliveira', price: 35.0, unit: '500g', category: 'mel', image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop&auto=format', tag: 'Orgânico', tagColor: TagColor.primary),
-  AliProduct(id: 6, name: 'Mix de Folhas Verdes', producer: 'Família Tanaka', price: 7.0, unit: 'bandeja', category: 'hortalicas', image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&h=300&fit=crop&auto=format', tag: 'S/ agrotóxico', tagColor: TagColor.primary),
-  AliProduct(id: 7, name: 'Goiaba Vermelha', producer: 'Família Tanaka', price: 6.5, unit: 'kg', category: 'frutas', image: 'https://images.unsplash.com/photo-1536511132770-e5058c7e8c46?w=400&h=300&fit=crop&auto=format', tag: 'Novo', tagColor: TagColor.accent),
-  AliProduct(id: 8, name: 'Iogurte Natural Integral', producer: 'Luísa Mendes', price: 12.0, unit: '500g', category: 'laticinios', image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=300&fit=crop&auto=format', tag: 'Sem aditivos', tagColor: TagColor.primary),
-];
 
 // ─── Aplicativo ─────────────────────────────────────────────────────────────
 
@@ -146,6 +147,39 @@ class _AliHomePageState extends State<AliHomePage> {
   final Set<int> liked = {};
   final Map<int, int> cart = {}; // id do produto -> quantidade
   bool orderPlaced = false;
+  List<AliCategory> categories = [];
+  List<Producer> producers = [];
+  List<AliProduct> products = [];
+  bool loading = true;
+  String? loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  Future<void> loadData() async {
+    setState(() {
+      loading = true;
+      loadError = null;
+    });
+    try {
+      final [cats, prods, items] =
+          await Future.wait([apiGet('/categories'), apiGet('/producers'), apiGet('/products')]);
+      setState(() {
+        categories = [allCategory, ...cats.map((j) => AliCategory.fromJson(j))];
+        producers = prods.map((j) => Producer.fromJson(j)).toList();
+        products = items.map((j) => AliProduct.fromJson(j)).toList();
+        loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        loadError = '$e';
+        loading = false;
+      });
+    }
+  }
 
   int get totalCartQty => cart.values.fold(0, (a, b) => a + b);
 
@@ -172,10 +206,25 @@ class _AliHomePageState extends State<AliHomePage> {
 
   void removeFromCart(int id) => setState(() => cart.remove(id));
 
-  void placeOrder() => setState(() {
+  Future<void> placeOrder() async {
+    try {
+      final res = await http.post(
+        Uri.parse('$apiUrl/orders'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'items': [for (final e in cart.entries) {'product_id': e.key, 'qty': e.value}],
+        }),
+      );
+      if (res.statusCode != 201) throw Exception(utf8.decode(res.bodyBytes));
+      setState(() {
         orderPlaced = true;
         cart.clear();
       });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Não foi possível enviar o pedido: $e')));
+    }
+  }
 
   void backFromSuccess() => setState(() {
         orderPlaced = false;
@@ -191,9 +240,24 @@ class _AliHomePageState extends State<AliHomePage> {
   }
 
   Widget _body() {
+    if (loading) return const Center(child: CircularProgressIndicator());
+    if (loadError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Text('Não foi possível carregar os dados do servidor.', textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            FilledButton(onPressed: loadData, child: const Text('Tentar de novo')),
+          ]),
+        ),
+      );
+    }
     switch (navIndex) {
       case 0:
         return HomeTab(
+          categories: categories,
+          producers: producers,
           activeCategory: activeCategory,
           onCategory: (c) => setState(() => activeCategory = c),
           liked: liked,
@@ -207,6 +271,7 @@ class _AliHomePageState extends State<AliHomePage> {
         return orderPlaced
             ? OrderSuccessView(onBack: backFromSuccess)
             : CartView(
+                products: products,
                 cart: cart,
                 onUpdateQty: updateQty,
                 onRemove: removeFromCart,
@@ -242,6 +307,8 @@ class _AliHomePageState extends State<AliHomePage> {
 // ─── Aba Início ─────────────────────────────────────────────────────────────
 
 class HomeTab extends StatelessWidget {
+  final List<AliCategory> categories;
+  final List<Producer> producers;
   final String activeCategory;
   final ValueChanged<String> onCategory;
   final Set<int> liked;
@@ -253,6 +320,8 @@ class HomeTab extends StatelessWidget {
 
   const HomeTab({
     super.key,
+    required this.categories,
+    required this.producers,
     required this.activeCategory,
     required this.onCategory,
     required this.liked,
@@ -666,6 +735,7 @@ class ProductCard extends StatelessWidget {
 // ─── Aba Cesta ──────────────────────────────────────────────────────────────
 
 class CartView extends StatelessWidget {
+  final List<AliProduct> products;
   final Map<int, int> cart;
   final void Function(int id, int delta) onUpdateQty;
   final ValueChanged<int> onRemove;
@@ -673,6 +743,7 @@ class CartView extends StatelessWidget {
 
   const CartView({
     super.key,
+    required this.products,
     required this.cart,
     required this.onUpdateQty,
     required this.onRemove,
